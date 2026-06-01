@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Message Perception Study</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg-secondary: #f7f6f3; --bg-tertiary: #f0efe9;
+    --text: #1a1a1a; --text-secondary: #6b6b6b; --text-tertiary: #a0a0a0;
+    --border: rgba(0,0,0,0.12); --border-mid: rgba(0,0,0,0.22); --border-strong: rgba(0,0,0,0.35);
+    --accent: #6D2E46; --accent-bg: #f9f0f3;
+    --radius: 10px; --radius-sm: 6px;
+    --font: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a; --bg-secondary: #242424; --bg-tertiary: #2e2e2e;
+      --text: #f0f0f0; --text-secondary: #a0a0a0; --text-tertiary: #666;
+      --border: rgba(255,255,255,0.1); --border-mid: rgba(255,255,255,0.18); --border-strong: rgba(255,255,255,0.3);
+      --accent: #c47a96; --accent-bg: #2a1520;
+    }
+  }
+  body { font-family: var(--font); background: var(--bg-tertiary); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
+  .wrap { max-width: 620px; margin: 0 auto; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 2rem; margin-bottom: 1rem; }
+  .progress-bar { height: 2px; background: var(--border); border-radius: 2px; margin-bottom: 2rem; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 0.4rem; }
+  h2 { font-size: 20px; font-weight: 500; color: var(--text); margin-bottom: 0.4rem; }
+  .desc { font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.5rem; }
+  .divider { height: 0.5px; background: var(--border); margin: 1.5rem 0; }
+  .q-block { margin-bottom: 1.4rem; }
+  .q-label { font-size: 14px; color: var(--text); line-height: 1.5; margin-bottom: 0.75rem; }
+  .radio-group { display: flex; flex-direction: column; gap: 6px; }
+  .radio-opt { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.12s; user-select: none; }
+  .radio-opt:hover { border-color: var(--border-mid); background: var(--bg-secondary); }
+  .radio-opt.sel { border-color: var(--accent); background: var(--accent-bg); }
+  .radio-dot { width: 16px; height: 16px; border-radius: 50%; border: 0.5px solid var(--border-mid); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .radio-inner { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: none; }
+  .radio-opt.sel .radio-inner { display: block; }
+  .radio-text { font-size: 14px; color: var(--text); }
+  .likert-wrap { display: flex; align-items: center; gap: 8px; }
+  .likert-end { font-size: 11px; color: var(--text-tertiary); min-width: 70px; line-height: 1.3; }
+  .likert-end.r { text-align: right; }
+  .likert-btns { display: flex; gap: 4px; flex: 1; justify-content: center; }
+  .lbtn { width: 34px; height: 34px; border-radius: 50%; border: 0.5px solid var(--border-mid); background: var(--bg); cursor: pointer; font-size: 12px; color: var(--text-secondary); transition: all 0.12s; display: flex; align-items: center; justify-content: center; font-family: var(--font); }
+  .lbtn:hover { border-color: var(--accent); color: var(--accent); }
+  .lbtn.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .condition-banner { background: var(--accent-bg); border: 1.5px solid var(--accent); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; text-align: center; }
+  .condition-banner .big { font-size: 18px; font-weight: 500; color: var(--accent); margin-bottom: 0.4rem; }
+  .condition-banner .sub { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+  .confirm-check { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; margin-top: 1rem; user-select: none; }
+  .confirm-check input { margin-top: 2px; accent-color: var(--accent); width: 16px; height: 16px; flex-shrink: 0; cursor: pointer; }
+  .confirm-check span { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+  .msg-card { background: var(--bg-secondary); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+  .msg-eyebrow { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 0.5rem; }
+  .msg-text { font-size: 14px; color: var(--text); line-height: 1.75; font-style: italic; }
+  .msg-badge { display: inline-block; margin-top: 0.75rem; font-size: 11px; padding: 3px 10px; border-radius: 99px; background: var(--accent-bg); border: 0.5px solid var(--accent); color: var(--accent); font-style: normal; }
+  .input-field { width: 100%; border: 0.5px solid var(--border-mid); border-radius: var(--radius-sm); padding: 9px 14px; font-size: 14px; font-family: var(--font); color: var(--text); background: var(--bg); transition: border 0.12s; }
+  .input-field:focus { outline: none; border-color: var(--accent); }
+  textarea.input-field { resize: vertical; min-height: 90px; line-height: 1.6; }
+  .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; }
+  .counter { font-size: 12px; color: var(--text-tertiary); }
+  .btn { padding: 10px 24px; border-radius: var(--radius-sm); font-size: 14px; cursor: pointer; border: 0.5px solid var(--border-mid); background: var(--bg); color: var(--text); transition: all 0.12s; font-family: var(--font); }
+  .btn:hover { background: var(--bg-secondary); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.primary:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .step { display: none; }
+  .step.active { display: block; }
+  .complete-wrap { text-align: center; padding: 3rem 1rem; }
+  .footer-note { font-size: 11px; color: var(--text-tertiary); text-align: center; margin-top: 0.75rem; }
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: var(--radius-sm); font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  .error-msg { font-size: 12px; color: #c0392b; margin-top: 0.5rem; display: none; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:11%"></div></div>
+
+  <!-- Step 1: Intro & Demographics -->
+  <div class="step active card" id="step-1">
+    <div class="eyebrow">Introduction</div>
+    <h2>Message perception study</h2>
+    <div class="desc">This study examines how people perceive messages in romantic contexts. You will read a few short messages and share your reactions. There are no right or wrong answers.<br><br>Your responses are anonymous and will be used solely for a class project in Introduction to Psychology at SNU. This will take approximately 5 minutes.</div>
+    <div class="divider"></div>
+    <div class="q-block">
+      <div class="q-label">Age</div>
+      <input class="input-field" type="number" id="d-age" placeholder="e.g. 21" min="16" max="99" style="width:110px">
+    </div>
+    <div class="q-block">
+      <div class="q-label">Gender</div>
+      <div class="radio-group">
+        <div class="radio-opt" onclick="pick('gender','Male',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Male</span></div>
+        <div class="radio-opt" onclick="pick('gender','Female',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Female</span></div>
+        <div class="radio-opt" onclick="pick('gender','Non-binary / other',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Non-binary / other</span></div>
+        <div class="radio-opt" onclick="pick('gender','Prefer not to say',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Prefer not to say</span></div>
+      </div>
+    </div>
+    <div class="q-block">
+      <div class="q-label">Is English your first language?</div>
+      <div class="radio-group">
+        <div class="radio-opt" onclick="pick('native','Yes',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Yes</span></div>
+        <div class="radio-opt" onclick="pick('native','No',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">No</span></div>
+      </div>
+    </div>
+    <div class="q-block">
+      <div class="q-label">Have you ever used an AI chatbot (e.g. ChatGPT) for personal or romantic communication?</div>
+      <div class="radio-group">
+        <div class="radio-opt" onclick="pick('ai_exp','Yes',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Yes</span></div>
+        <div class="radio-opt" onclick="pick('ai_exp','No',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">No</span></div>
+      </div>
+    </div>
+    <div class="nav">
+      <span class="counter">1 / 9</span>
+      <button class="btn primary" onclick="go(2)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Attention check -->
+  <div class="step card" id="step-2">
+    <div class="eyebrow">Quick check</div>
+    <h2>Before we begin</h2>
+    <div class="desc">Please read each question carefully and answer honestly. This helps us ensure data quality.</div>
+    <div class="q-block">
+      <div class="q-label">What are the messages in this study about?</div>
+      <div class="radio-group">
+        <div class="radio-opt" onclick="pick('attention_check','Romantic / personal communication',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Romantic / personal communication</span></div>
+        <div class="radio-opt" onclick="pick('attention_check','Work emails',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Work emails</span></div>
+        <div class="radio-opt" onclick="pick('attention_check','News articles',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">News articles</span></div>
+        <div class="radio-opt" onclick="pick('attention_check','I did not read the introduction',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">I did not read the introduction</span></div>
+      </div>
+      <div class="error-msg" id="err-attention">Please select an answer.</div>
+    </div>
+    <div class="nav">
+      <span class="counter">2 / 9</span>
+      <button class="btn primary" onclick="go(3)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Condition reveal — FULL PAGE -->
+  <div class="step card" id="step-3">
+    <div class="eyebrow">Important — please read carefully</div>
+    <h2>About the messages</h2>
+    <div class="desc">You are about to read three short messages. Before you begin, please note the following.</div>
+    <div class="condition-banner" id="condition-banner">
+      <div class="big" id="condition-big"></div>
+      <div class="sub" id="condition-sub"></div>
+    </div>
+    <div class="desc" style="margin-bottom: 0.5rem;">Please keep this in mind as you read and evaluate each message.</div>
+    <label class="confirm-check">
+      <input type="checkbox" id="confirm-cb" onchange="document.getElementById('btn-confirm').disabled = !this.checked">
+      <span>I have read and understood the above. I know who wrote the messages.</span>
+    </label>
+    <div class="nav" style="margin-top: 1.5rem;">
+      <span class="counter">3 / 9</span>
+      <button class="btn primary" id="btn-confirm" onclick="go(4)" disabled>I understand →</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Message 1 -->
+  <div class="step card" id="step-4">
+    <div class="eyebrow">Message 1 of 3 — Thank you</div>
+    <h2>Read and evaluate</h2>
+    <div class="msg-card">
+      <div class="msg-eyebrow">Message</div>
+      <div class="msg-text">"I just wanted to say thank you for everything you did today. You didn't have to go out of your way like that, but you did, and it meant more to me than I can really put into words. I'm really lucky to have you."</div>
+      <div class="msg-badge" id="badge-1"></div>
+    </div>
+    <div class="q-block"><div class="q-label">1. This message feels genuine.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m1q1"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">2. The sender truly means what is written.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m1q2"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">3. This message feels personal.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m1q3"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">4. This message feels mechanical or formulaic.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m1q4"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">5. I would trust the feelings expressed in this message.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m1q5"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="nav"><span class="counter">4 / 9</span><button class="btn primary" onclick="go(5)">Continue →</button></div>
+  </div>
+
+  <!-- Step 5: Message 2 -->
+  <div class="step card" id="step-5">
+    <div class="eyebrow">Message 2 of 3 — Apology</div>
+    <h2>Read and evaluate</h2>
+    <div class="msg-card">
+      <div class="msg-eyebrow">Message</div>
+      <div class="msg-text">"I've been sitting with what I said and I feel terrible about it. That wasn't fair to you and I know it. I'm sorry — not because I feel awkward about it, but because I actually hurt you and that's the last thing I ever want to do."</div>
+      <div class="msg-badge" id="badge-2"></div>
+    </div>
+    <div class="q-block"><div class="q-label">1. This message feels genuine.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m2q1"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">2. The sender truly means what is written.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m2q2"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">3. This message feels personal.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m2q3"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">4. This message feels mechanical or formulaic.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m2q4"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">5. I would trust the feelings expressed in this message.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m2q5"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="nav"><span class="counter">5 / 9</span><button class="btn primary" onclick="go(6)">Continue →</button></div>
+  </div>
+
+  <!-- Step 6: Message 3 -->
+  <div class="step card" id="step-6">
+    <div class="eyebrow">Message 3 of 3 — Good morning</div>
+    <h2>Read and evaluate</h2>
+    <div class="msg-card">
+      <div class="msg-eyebrow">Message</div>
+      <div class="msg-text">"Good morning :) I woke up thinking about you. Hope your day starts off easy and that something small but nice happens to you today."</div>
+      <div class="msg-badge" id="badge-3"></div>
+    </div>
+    <div class="q-block"><div class="q-label">1. This message feels genuine.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m3q1"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">2. The sender truly means what is written.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m3q2"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">3. This message feels personal.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m3q3"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">4. This message feels mechanical or formulaic.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m3q4"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">5. I would trust the feelings expressed in this message.</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="m3q5"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="nav"><span class="counter">6 / 9</span><button class="btn primary" onclick="go(7)">Continue →</button></div>
+  </div>
+
+  <!-- Step 7: Follow-up -->
+  <div class="step card" id="step-7">
+    <div class="eyebrow">Follow-up questions</div>
+    <h2>A few more questions</h2>
+    <div class="q-block">
+      <div class="q-label">Who did you understand to have written the messages you just read?</div>
+      <div class="radio-group">
+        <div class="radio-opt" onclick="pick('manip_check','A human',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">A human</span></div>
+        <div class="radio-opt" onclick="pick('manip_check','An AI',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">An AI</span></div>
+        <div class="radio-opt" onclick="pick('manip_check','Not sure',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Not sure</span></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="q-block">
+      <div class="q-label">If you received one of these messages from a partner, how would you most likely respond?</div>
+      <div class="radio-group">
+        <div class="radio-opt" onclick="pick('response','Reply warmly',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Reply warmly</span></div>
+        <div class="radio-opt" onclick="pick('response','Reply neutrally',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Reply neutrally</span></div>
+        <div class="radio-opt" onclick="pick('response','Feel indifferent',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Feel indifferent</span></div>
+        <div class="radio-opt" onclick="pick('response','Feel uncomfortable',this)"><div class="radio-dot"><div class="radio-inner"></div></div><span class="radio-text">Feel uncomfortable</span></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="q-block"><div class="q-label">"I think AI can express genuine emotion."</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="ai_belief"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="q-block"><div class="q-label">"Receiving an AI-written message from a partner would feel wrong to me."</div><div class="likert-wrap"><span class="likert-end">Strongly disagree</span><div class="likert-btns" id="ai_discomfort"></div><span class="likert-end r">Strongly agree</span></div></div>
+    <div class="nav"><span class="counter">7 / 9</span><button class="btn primary" onclick="go(8)">Continue →</button></div>
+  </div>
+
+  <!-- Step 8: Open ended -->
+  <div class="step card" id="step-8">
+    <div class="eyebrow">Open response</div>
+    <h2>Your thoughts</h2>
+    <div class="q-block">
+      <div class="q-label">Is there anything you noticed about the messages, or anything you'd like to share about how they made you feel? <span style="font-size:12px; color:var(--text-tertiary)">(optional)</span></div>
+      <textarea class="input-field" id="open_response" placeholder="Feel free to write anything that came to mind..."></textarea>
+    </div>
+    <div class="nav"><span class="counter">8 / 9</span><button class="btn primary" onclick="go(9)">Continue →</button></div>
+  </div>
+
+  <!-- Step 9: Debrief + Submit -->
+  <div class="step card" id="step-9">
+    <div class="eyebrow">Debrief</div>
+    <h2>Thank you for participating</h2>
+    <div class="desc">Now that you have completed the survey, we can share what this study was really about.<br><br>All three messages you read were <strong>generated by AI</strong>. Half of participants were told the messages were written by a human; the other half were told they were AI-generated.<br><br>We are investigating whether knowing the source of a romantic message changes how sincere it feels, even when the text is identical. Your responses will help us understand how authorship labels shape emotional perception.<br><br>If you have any questions, feel free to ask the research team.</div>
+    <div class="divider"></div>
+    <div class="error-msg" id="err-submit" style="display:none; margin-bottom: 1rem; font-size: 13px;">Something went wrong. Please try again.</div>
+    <button class="btn primary" id="submit-btn" onclick="submit()" style="width:100%; padding:12px;">Submit my responses</button>
+    <p class="footer-note" style="margin-top: 0.75rem;">LoveGPT · Introduction to Psychology · Group 15 · Hamchoi and Cheese</p>
+    <div class="nav" style="margin-top: 0.5rem;"><span class="counter">9 / 9</span><span></span></div>
+  </div>
+
+  <!-- Complete -->
+  <div class="step card" id="step-complete">
+    <div class="complete-wrap">
+      <div style="font-size: 36px; margin-bottom: 1rem;">✓</div>
+      <h2 style="margin-bottom: 0.5rem;">Responses submitted</h2>
+      <p class="desc">Your response has been recorded. Thank you for helping with our research.</p>
+      <p class="footer-note" style="margin-top: 2rem;">You may now close this tab.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxS_HhlbvCzgkHrupn0bQlDcjqe02rmLU5KnTZEdrngXHj8-5fuUywwj0d6xoIVBaPz/exec';
+var R = {};
+var condition = Math.random() < 0.5 ? 'human' : 'ai';
+R.condition = condition;
+R.device_id = 'web_' + Math.random().toString(36).slice(2,8);
+
+function initCondition() {
+  var isHuman = condition === 'human';
+  var label = isHuman ? 'Written by a real person' : 'Generated by AI';
+  var bigText = isHuman
+    ? 'These messages were written by a real person.'
+    : 'These messages were generated by AI.';
+  var subText = isHuman
+    ? 'A real person composed these messages for their romantic partner.'
+    : 'An AI chatbot generated these messages. No human wrote them.';
+  document.getElementById('condition-big').textContent = bigText;
+  document.getElementById('condition-sub').textContent = subText;
+  ['badge-1','badge-2','badge-3'].forEach(function(id) {
+    document.getElementById(id).textContent = label;
+  });
+}
+
+function makeLikert(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  for (var i = 1; i <= 7; i++) {
+    (function(val) {
+      var b = document.createElement('button');
+      b.className = 'lbtn';
+      b.textContent = val;
+      b.onclick = function() {
+        el.querySelectorAll('.lbtn').forEach(function(x) { x.classList.remove('sel'); });
+        b.classList.add('sel');
+        R[id] = val;
+      };
+      el.appendChild(b);
+    })(i);
+  }
+}
+
+function pick(key, val, el) {
+  var group = el.closest('.radio-group') || el.parentElement;
+  group.querySelectorAll('.radio-opt').forEach(function(e) { e.classList.remove('sel'); });
+  el.classList.add('sel');
+  R[key] = val;
+}
+
+var TOTAL_STEPS = 9;
+function go(step) {
+  document.querySelectorAll('.step').forEach(function(s) { s.classList.remove('active'); });
+  var id = step === 'complete' ? 'step-complete' : 'step-' + step;
+  document.getElementById(id).classList.add('active');
+  var pct = step === 'complete' ? 100 : Math.round((step / TOTAL_STEPS) * 100);
+  document.getElementById('progress').style.width = pct + '%';
+  window.scrollTo(0, 0);
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+function submit() {
+  R.open_response = document.getElementById('open_response').value || '';
+  R.submitted_at = new Date().toISOString();
+  R.d_age = document.getElementById('d-age').value || '';
+
+  var btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Submitting...';
+
+  var errEl = document.getElementById('err-submit');
+  errEl.style.display = 'none';
+
+  var img = new Image();
+  var params = encodeURIComponent(JSON.stringify(R));
+  img.src = SCRIPT_URL + '?data=' + params + '&cb=' + Date.now();
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(R)
+  }).then(function() {
+    localStorage.setItem('lovegpt_submitted', '1');
+    go('complete');
+  }).catch(function() {
+    localStorage.setItem('lovegpt_local_' + Date.now(), JSON.stringify(R));
+    go('complete');
+  });
+}
+
+var likertIds = [
+  'm1q1','m1q2','m1q3','m1q4','m1q5',
+  'm2q1','m2q2','m2q3','m2q4','m2q5',
+  'm3q1','m3q2','m3q3','m3q4','m3q5',
+  'ai_belief','ai_discomfort'
+];
+likertIds.forEach(makeLikert);
+initCondition();
+</script>
+</body>
+</html>
